@@ -44,9 +44,39 @@ unsigned char SI[] = {
 
 
 unsigned char * SubBytes (unsigned char data[]) {
-    for (int i = 0; i < 15; i++) {
+    for (int i = 0; i < 16; i++) {
         data[i] = S[data[i]];
     }
+
+    return data;
+}
+
+unsigned char * ShiftRows (unsigned char data[]) {
+    unsigned char data_tmp[] = {
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
+    };
+
+    for (int i = 0; i < 16; i++) {
+        data_tmp[i] = data[i];
+    }
+
+    data[4] = data_tmp[5];
+    data[5] = data_tmp[6];
+    data[6] = data_tmp[7];
+    data[7] = data_tmp[4];
+
+    data[8] = data_tmp[10];
+    data[9] = data_tmp[11];
+    data[10] = data_tmp[8];
+    data[11] = data_tmp[9];
+
+    data[12] = data_tmp[15];
+    data[13] = data_tmp[12];
+    data[14] = data_tmp[13];
+    data[15] = data_tmp[14];
 
     return data;
 }
@@ -90,13 +120,66 @@ unsigned char * MixColumnsInverse (unsigned char data[], unsigned char data_mixe
     return data_mixed;
 }
 
-int main() {
+unsigned char * KeyScheduleSimple (unsigned char key_in[], unsigned char key_out[], int round) {
+    unsigned char Rcon[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
+    
+    key_out[0] = S[key_in[7]] ^ key_in[0] ^ Rcon[round];
+    key_out[4] = S[key_in[11]] ^ key_in[4];
+    key_out[8] = S[key_in[15]] ^ key_in[8];
+    key_out[12] = S[key_in[3]] ^ key_in[12];
+
+    for (int i = 1; i < 4; i++) {
+        key_out[i] = key_out[i-1] ^ key_in[i];
+    }
+
+    for (int i = 5; i < 8; i++) {
+        key_out[i] = key_out[i-1] ^ key_in[i];
+    }
+
+    for (int i = 9; i < 12; i++) {
+        key_out[i] = key_out[i-1] ^ key_in[i];
+    }
+
+    for (int i = 13; i < 16; i++) {
+        key_out[i] = key_out[i-1] ^ key_in[i];
+    }
+
+    return key_out;
+}
+
+unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
+    for (int i = 0; i < 16; i++) {
+        data[i] ^= roundkey[i];
+    }
+
+    return data;
+}
+
+int main () {
+
+    unsigned char key[] = {
+    0x2b, 0x28, 0xab, 0x09,
+    0x7e, 0xae, 0xf7, 0xcf,
+    0x15, 0xd2, 0x15, 0x4f,
+    0x16, 0xa6, 0x88, 0x3c
+    };
+
+    unsigned char key_out[] = {
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0,
+    0, 0, 0, 0
+    };
 
     unsigned char data[] = {
-    0x01, 0x02, 0x03, 0x04,
-    0x01, 0x02, 0x03, 0x04,
-    0x01, 0x02, 0x03, 0x04,
-    0x01, 0x02, 0x03, 0x04
+    0x32, 0x88, 0x31, 0xe0,
+    0x43, 0x5a, 0x31, 0x37,
+    0xf6, 0x30, 0x98, 0x07,
+    0xa8, 0x8d, 0xa2, 0x34
+    //0xf3, 0x44, 0x81, 0xec,
+    //0x3c, 0xc6, 0x27, 0xba,
+    //0xcd, 0x5d, 0xc3, 0xfb,
+    //0x08, 0xf2, 0x73, 0xe6
     };
 
     unsigned char data_tmp[] = {
@@ -106,39 +189,37 @@ int main() {
     0, 0, 0, 0
     };
 
+    AddRoundKey(data, key);
+
+    for (int round = 0; round < 9; round++) {
+        SubBytes(data);
+
+        ShiftRows(data);
+
+        MixColumns(data,data_tmp);
+
+        KeyScheduleSimple(key, key_out, round);
+
+        AddRoundKey(data_tmp, key_out);
+
+        for (int i = 0; i < 16; i++) {
+            data[i] = data_tmp[i];
+            key[i] = key_out[i];
+        }
+    }
+
     SubBytes(data);
 
-    clock_t start_time = clock();
+    ShiftRows(data);
 
-	for (int j = 0; j < 100; j++) {
-        MixColumns(data, data_tmp);
-    }    
+    KeyScheduleSimple(key, key_out, 9);
 
-	clock_t time_spent = clock() - start_time;
-	printf("cpu time : %f (sec.)\n", (double)time_spent / CLOCKS_PER_SEC);
+    AddRoundKey(data, key_out);
 
+    
     for (int i = 0; i < 16; i++) {
-        data[i] = data_tmp[i];
-        data_tmp[i] = 0;
+        printf("%x\n", data[i]);
     }
-
-    start_time = clock();
-
-    for (int j = 0; j < 100; j++) {
-	    MixColumnsInverse(data, data_tmp);
-    }
-
-	time_spent = clock() - start_time;
-	printf("cpu time : %f (sec.)\n", (double)time_spent / CLOCKS_PER_SEC);
-
-    for (int i = 0; i < 16; i++) {
-        data[i] = data_tmp[i];
-        data_tmp[i] = 0;
-    }
-
-    //for (int i = 0; i < 16; i++) {
-    //    printf("%d\n", data[i]);
-    //}
-
+    
     return 0;
 }
