@@ -3,9 +3,25 @@
 //
 
 #include <string.h>
+#include <stdlib.h>
 #include "defines.h"
 #include "aes.h"
 #include "key_schedule.h"
+
+AES* create_aes_instance(unsigned char key[]) {
+    AES* aes = malloc(sizeof(AES));
+    aes->key_size = BLOCK_SIZE;
+    
+    aes->key = malloc(aes->key_size * sizeof(unsigned char));
+    memcpy(aes->key, key, aes->key_size * sizeof(unsigned char));
+
+    return aes;
+}
+
+void delete_aes_instance(AES* aes) {
+    free(aes->key);
+    free(aes);
+}
 
 // AES S-Box
 unsigned char S[] = {
@@ -144,29 +160,24 @@ unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
     return data;
 }
 
-unsigned char * AES4Rounds(unsigned char data[], unsigned char key[]){
-   
-    unsigned char key_out[] = {
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0,
-    0, 0, 0, 0
-    };
+unsigned char * AES4Rounds(AES* aes, unsigned char data[]){
 
-     AddRoundKey(data, key);
+    AddRoundKey(data, aes->key);
 
     for (int round = 1; round < 4; round++) {
         SubBytes(data);
         ShiftRows(data);
         MixColumns(data);
-        KeySchedule(key, round);
-        AddRoundKey(data, key);
+        KeySchedule(aes->key, round);
+        AddRoundKey(data, aes->key);
     }
 
     SubBytes(data);
     ShiftRows(data);
-    KeySchedule(key, 4);
-    AddRoundKey(data, key);
+    KeySchedule(aes->key, 4);
+    AddRoundKey(data, aes->key);
 
     return data;
 }
+
+
