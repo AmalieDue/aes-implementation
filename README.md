@@ -22,7 +22,9 @@ unsigned char key[] = {
 // Create an AES instance with the given master key
 AES* aes = create_aes_instance(key);
 
-// Perform square attack on the AES instance. Within this attack, the fourth round key is guessed and returned by the function. The fourth round key is written into aes->key (it overwrites the previous aes->key)
+// Perform square attack on the AES instance. Within this attack, the fourth round key is guessed 
+and returned by the function. The fourth round key is written into aes->key (it overwrites the 
+previous aes->key)
 SquareAttack(aes);
 
 // When printing out aes->key, we get the fourth round key which was guessed in the square attack
