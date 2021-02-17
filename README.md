@@ -23,8 +23,8 @@ unsigned char key[] = {
 AES* aes = create_aes_instance(key);
 
 // Perform square attack on the AES instance. Within this attack, the fourth round key is guessed 
-and returned by the function. The fourth round key is written into aes->key (it overwrites the 
-previous aes->key)
+//and returned by the function. The fourth round key is written into aes->key (it overwrites the 
+//previous aes->key)
 SquareAttack(aes);
 
 // When printing out aes->key, we get the fourth round key which was guessed in the square attack
@@ -42,7 +42,8 @@ ef a8 b6 db 44 52 71 0b a5 5b 25 ad 41 7f 3b 00
 ```
 
 ```c
-// Applying the inverse Key Schedule algorithm, it is possible to derive the master key from the fourth round key
+// Applying the inverse Key Schedule algorithm, it is possible to derive the master key from the 
+// fourth round key
 KeyScheduleInverse(aes->key, 4);
 
 for (int i = 0; i < BLOCK_SIZE; i++) {
