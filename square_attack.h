@@ -2,11 +2,11 @@
 // Created by bla bla
 //
 
-#include "aes.h"
-#include "defines.h"
-
 #ifndef SQUAREATTACK_AES_H
 #define SQUAREATTACK_AES_H
+
+#include "aes.h"
+#include "defines.h"
 
 unsigned char ReverseLastRound (unsigned char data_byte, unsigned char last_key_byte_guess);
 

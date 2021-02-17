@@ -7,6 +7,15 @@
 #include "aes.h"
 #include "key_schedule.h"
 
+/*
+* Description: Key Schedule algorithm. Calculates the next round key.
+*
+* Input: Round key from previous round and the current round number. I.e. if
+* we are doing fourth round of encryption, then the inputs are the round key
+* from third round and the integer round = 4
+*
+* Output: The next round key
+*/
 unsigned char * KeySchedule (unsigned char key_in[], int round) {
     unsigned char key_out[BLOCK_SIZE];
 
@@ -38,6 +47,15 @@ unsigned char * KeySchedule (unsigned char key_in[], int round) {
     return key_in;
 }
 
+/*
+* Description: Inverse Key Schedule algorithm. The master key is derived from
+* some input round key.
+* 
+* Input: Some round key and the round number corresponding to the round key. I.e. if
+* the fourth round key is given, then also the integer round = 4 is given.
+*
+* Output: The master key derived from the input round key
+*/
 unsigned char * KeyScheduleInverse(unsigned char key_in[], int round) {
     unsigned char key_out[BLOCK_SIZE];
 

@@ -8,6 +8,14 @@
 #include "aes.h"
 #include "key_schedule.h"
 
+/*
+* Description: Creates an AES instance. An AES instance is a struct with the two
+* properties, key and key_size.
+*
+* Inputs: Unsigned char array key containing the master key used for encryption.
+* 
+* Output: The AES instance.
+*/
 AES* create_aes_instance(unsigned char key[]) {
     AES* aes = malloc(sizeof(AES));
     aes->key_size = BLOCK_SIZE;
@@ -18,6 +26,14 @@ AES* create_aes_instance(unsigned char key[]) {
     return aes;
 }
 
+/*
+* Description: Deletes an AES instance, which means that we free the dynamically
+* allocated memory.
+*
+* Input: The AES instance
+*
+* Output: No output
+*/
 void delete_aes_instance(AES* aes) {
     free(aes->key);
     free(aes);
@@ -61,6 +77,14 @@ unsigned char SI[] = {
     0xA0, 0xE0, 0x3B, 0x4D, 0xAE, 0x2A, 0xF5, 0xB0, 0xC8, 0xEB, 0xBB, 0x3C, 0x83, 0x53, 0x99, 0x61,
     0x17, 0x2B, 0x04, 0x7E, 0xBA, 0x77, 0xD6, 0x26, 0xE1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0C, 0x7D };
 
+/*
+* Description: The SubBytes operation for AES encryption. Each byte is replaced by
+* the corresponding byte from the S-box.
+*
+* Input: Current AES data
+*
+* Output: AES data after applying SubBytes operation
+*/
 unsigned char * SubBytes (unsigned char data[]) {
     for (int i = 0; i < 16; i++) {
         data[i] = S[data[i]];
@@ -69,6 +93,13 @@ unsigned char * SubBytes (unsigned char data[]) {
     return data;
 }
 
+/*
+* Description: The inverse SubBytes operation for AES decryption.
+*
+* Input: Current AES data
+*
+* Output: AES data after applying the inverse SubBytes operation
+*/
 unsigned char * SubBytesInverse (unsigned char data[]) {
     for (int i = 0; i < 16; i++) {
         data[i] = SI[data[i]];
@@ -77,6 +108,15 @@ unsigned char * SubBytesInverse (unsigned char data[]) {
     return data;
 }
 
+/*
+* Description: The ShiftRows operation for AES encryption. First row is not
+* shifted, second row is shifted one to the left, third row is shifted two
+* to the left, and fourth row is shifted three to the left.
+*
+* Input: Current AES data
+*
+* Output: Aes data after applying the ShiftRows operation
+*/
 unsigned char * ShiftRows (unsigned char data[]) {
     unsigned char data_tmp;
 
@@ -105,6 +145,13 @@ unsigned char * ShiftRows (unsigned char data[]) {
     return data;
 }
 
+/*
+* Description: The MixColumns operation for AES encryption.
+*
+* Input: Current AES data
+*
+* Output: AES data after applying MixColumns operation
+*/
 unsigned char * MixColumns (unsigned char data[]) {
     
     unsigned char data_mixed[BLOCK_SIZE];
@@ -121,6 +168,13 @@ unsigned char * MixColumns (unsigned char data[]) {
     return data;
 }
 
+/*
+* Description: The inverse MixColumns operation for AES decryption.
+*
+* Input: Current AES data
+*
+* Output: AES data after applying inverse MixColumns operation
+*/
 unsigned char * MixColumnsInverse (unsigned char data[]) {
 
     unsigned char data_mixed[BLOCK_SIZE];
@@ -152,6 +206,13 @@ unsigned char * MixColumnsInverse (unsigned char data[]) {
     return data;
 }
 
+/*
+* Description: The AddRoundKey operation for AES encryption.
+*
+* Input: Current AES data
+*
+* Output: AES data after applying AddRoundKey operation
+*/
 unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
     for (int i = 0; i < 16; i++) {
         data[i] ^= roundkey[i];
@@ -160,6 +221,14 @@ unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
     return data;
 }
 
+/*
+* Description: Four rounds of AES encryption, which means 3 full rounds and then
+* a last round without the MicColumns operation.
+*
+* Input: AES instance and data for encryption
+*
+* Output: Encrypted data
+*/
 unsigned char * AES4Rounds(AES* aes, unsigned char data[]){
 
     AddRoundKey(data, aes->key);
