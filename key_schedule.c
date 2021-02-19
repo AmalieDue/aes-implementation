@@ -1,5 +1,5 @@
 //
-// Created by bla bla
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
 //
 
 #include <string.h>
@@ -16,7 +16,7 @@
 *
 * Output: The next round key
 */
-unsigned char * KeySchedule (unsigned char key_in[], int round) {
+unsigned char * key_schedule (unsigned char key_in[], int round) {
     unsigned char key_out[BLOCK_SIZE];
 
     unsigned char Rcon[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};
@@ -56,7 +56,7 @@ unsigned char * KeySchedule (unsigned char key_in[], int round) {
 *
 * Output: The master key derived from the input round key
 */
-unsigned char * KeyScheduleInverse(unsigned char key_in[], int round) {
+unsigned char * derive_master_key(unsigned char key_in[], int round) {
     unsigned char key_out[BLOCK_SIZE];
 
     unsigned char Rcon[] = {0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36};

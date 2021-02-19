@@ -1,3 +1,7 @@
+//
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
+//
+
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -11,12 +15,12 @@
 *Desctiption: Function that reverses the last round of AES which is used for the square attack using a possible round key byte. 
 *Shift rows is not considered since each byte is considered individually
 *
-*Input: A data byte from the AES encryption and a guess for the corrosponding round key byte
+*Input: A data byte from the AES encryption and a possible corrosponding round key byte
 * 
-*Output: The data_byte after the reversal of the last AES round:
+*Output: The data_byte after the decryption of the last AES round:
 */
-unsigned char ReverseLastRound (unsigned char data_byte, unsigned char last_key_byte_guess) {
-    data_byte ^= last_key_byte_guess;
+unsigned char decrypt_round_one_byte (unsigned char data_byte, unsigned char key_byte) {
+    data_byte ^= key_byte;
     data_byte = SI[data_byte];
 
     return data_byte;
@@ -29,12 +33,12 @@ unsigned char ReverseLastRound (unsigned char data_byte, unsigned char last_key_
 * 
 *Output: 1 if the guess is valid, 0 if the guess is wrong. 
 */
-int CheckGuess (unsigned char lambda_set[SET_SIZE][BLOCK_SIZE], int byte_position, unsigned char key_byte_guess) {
+int check_key_byte_guess (unsigned char lambda_set[SET_SIZE][BLOCK_SIZE], int byte_position, unsigned char key_byte_guess) {
 
     unsigned char byte_sum = 0;
     
     for (int i = 0; i < SET_SIZE; i++) {
-        byte_sum ^= ReverseLastRound(lambda_set[i][byte_position], key_byte_guess);
+        byte_sum ^= decrypt_round_one_byte(lambda_set[i][byte_position], key_byte_guess);
     }
 
     if (byte_sum == 00) {
@@ -51,7 +55,7 @@ int CheckGuess (unsigned char lambda_set[SET_SIZE][BLOCK_SIZE], int byte_positio
 * 
 *Output: The 4'th round key. 
 */
-unsigned char* SquareAttack(AES* aes){
+unsigned char* square_attack(AES* aes){
 
     // We define the key and a copy for moving data around
     
@@ -98,7 +102,7 @@ unsigned char* SquareAttack(AES* aes){
             memcpy(DeltaSetContainer[i], template, BLOCK_SIZE);
             DeltaSetContainer[i][0] = (unsigned char) i;
 
-            AES4Rounds(aes, DeltaSetContainer[i]);
+            aes_encryption_4_rounds(aes, DeltaSetContainer[i]);
 
             for (int i = 0; i < BLOCK_SIZE; i++) {
                 aes->key[i] = key_original[i];
@@ -108,7 +112,7 @@ unsigned char* SquareAttack(AES* aes){
         //We then find the possible  candidates for each og the 16 bytes of the roundkey
         for (int i = 0; i < BLOCK_SIZE; i++) {
             for (int j = 0; j < SET_SIZE; j++) {
-                current_correct_key_bytes[i][j] = CheckGuess (DeltaSetContainer, i, (unsigned char)j);
+                current_correct_key_bytes[i][j] = check_key_byte_guess (DeltaSetContainer, i, (unsigned char)j);
             }
         }
 

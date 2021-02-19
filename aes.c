@@ -1,8 +1,9 @@
 //
-// Created by bla bla
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
 //
 
 #include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include "defines.h"
 #include "aes.h"
@@ -85,7 +86,7 @@ unsigned char SI[] = {
 *
 * Output: AES data after applying SubBytes operation
 */
-unsigned char * SubBytes (unsigned char data[]) {
+unsigned char * sub_bytes (unsigned char data[]) {
     for (int i = 0; i < 16; i++) {
         data[i] = S[data[i]];
     }
@@ -100,7 +101,7 @@ unsigned char * SubBytes (unsigned char data[]) {
 *
 * Output: AES data after applying the inverse SubBytes operation
 */
-unsigned char * SubBytesInverse (unsigned char data[]) {
+unsigned char * sub_bytes_inverse (unsigned char data[]) {
     for (int i = 0; i < 16; i++) {
         data[i] = SI[data[i]];
     }
@@ -117,7 +118,7 @@ unsigned char * SubBytesInverse (unsigned char data[]) {
 *
 * Output: Aes data after applying the ShiftRows operation
 */
-unsigned char * ShiftRows (unsigned char data[]) {
+unsigned char * shift_rows (unsigned char data[]) {
     unsigned char data_tmp;
 
     // shift second row one to the left
@@ -145,6 +146,32 @@ unsigned char * ShiftRows (unsigned char data[]) {
     return data;
 }
 
+unsigned char * shift_rows_inverse (unsigned char data[]) {
+
+    unsigned char data_tmp;
+
+    data_tmp = data[4];
+    data[4] = data[7];
+    data[7] = data[6];
+    data[6] = data[5];
+    data[5] = data_tmp;
+
+    data_tmp = data[8];
+    data[8] = data[10];
+    data[10] = data_tmp;
+    data_tmp = data[9];
+    data[9] = data[11];
+    data[11] = data_tmp;
+
+    data_tmp = data[12];
+    data[12] = data[13];
+    data[13] = data[14];
+    data[14] = data[15];
+    data[15] = data_tmp;
+
+    return data;
+}
+
 /*
 * Description: The MixColumns operation for AES encryption.
 *
@@ -152,7 +179,7 @@ unsigned char * ShiftRows (unsigned char data[]) {
 *
 * Output: AES data after applying MixColumns operation
 */
-unsigned char * MixColumns (unsigned char data[]) {
+unsigned char * mix_columns (unsigned char data[]) {
     
     unsigned char data_mixed[BLOCK_SIZE];
     
@@ -175,7 +202,7 @@ unsigned char * MixColumns (unsigned char data[]) {
 *
 * Output: AES data after applying inverse MixColumns operation
 */
-unsigned char * MixColumnsInverse (unsigned char data[]) {
+unsigned char * mix_columns_inverse (unsigned char data[]) {
 
     unsigned char data_mixed[BLOCK_SIZE];
 
@@ -213,7 +240,7 @@ unsigned char * MixColumnsInverse (unsigned char data[]) {
 *
 * Output: AES data after applying AddRoundKey operation
 */
-unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
+unsigned char * add_round_key (unsigned char data[], unsigned char roundkey[]) {
     for (int i = 0; i < 16; i++) {
         data[i] ^= roundkey[i];
     }
@@ -229,24 +256,104 @@ unsigned char * AddRoundKey (unsigned char data[], unsigned char roundkey[]) {
 *
 * Output: Encrypted data
 */
-unsigned char * AES4Rounds(AES* aes, unsigned char data[]){
+unsigned char * aes_encryption_4_rounds(AES* aes, unsigned char data[]){
 
-    AddRoundKey(data, aes->key);
+    add_round_key(data, aes->key);
 
     for (int round = 1; round < 4; round++) {
-        SubBytes(data);
-        ShiftRows(data);
-        MixColumns(data);
-        KeySchedule(aes->key, round);
-        AddRoundKey(data, aes->key);
+        sub_bytes(data);
+        shift_rows(data);
+        mix_columns(data);
+        key_schedule(aes->key, round);
+        add_round_key(data, aes->key);
     }
 
-    SubBytes(data);
-    ShiftRows(data);
-    KeySchedule(aes->key, 4);
-    AddRoundKey(data, aes->key);
+    sub_bytes(data);
+    shift_rows(data);
+    key_schedule(aes->key, 4);
+    add_round_key(data, aes->key);
 
     return data;
 }
 
+unsigned char * aes_encryption_10_rounds(AES* aes, unsigned char data[]){
 
+    add_round_key(data, aes->key);
+
+    for (int round = 1; round < 10; round++) {
+        sub_bytes(data);
+
+        shift_rows(data);
+
+        mix_columns(data);
+
+        key_schedule(aes->key, round);
+
+        add_round_key(data, aes->key);
+    }
+
+    
+    sub_bytes(data);
+
+    shift_rows(data);
+
+    key_schedule(aes->key, 10);
+
+    add_round_key(data, aes->key);
+    
+
+return data;
+
+}
+
+unsigned char * aes_decryption_10_rounds(AES* aes, unsigned char data[]){
+   
+    unsigned char Round_Keys[11][BLOCK_SIZE];
+
+    unsigned char Round_Key[BLOCK_SIZE];
+
+    memcpy(Round_Key, aes->key, BLOCK_SIZE);
+
+    for (int i=0; i<BLOCK_SIZE; i++){
+        Round_Keys[0][i]=Round_Key[i];
+    }
+
+    for (int i=1; i<11; i++){
+
+        key_schedule(Round_Key, i);
+
+        for(int j=0; j<16;j++){
+
+            Round_Keys[i][j]=Round_Key[j];
+        }
+    }
+    
+    //We perform the first descryption step
+    add_round_key(data, Round_Keys[10]);
+
+    shift_rows_inverse(data);
+
+    sub_bytes_inverse(data);
+
+
+    for (int round = 0; round < 9; round++) {
+        
+        add_round_key(data, Round_Keys[9-round]);
+
+
+        mix_columns_inverse(data);
+
+        sub_bytes_inverse(data);
+
+        shift_rows_inverse(data);
+    }
+
+    add_round_key(data, Round_Keys[0]);
+
+
+
+    
+
+return data;
+
+}

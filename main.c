@@ -1,3 +1,7 @@
+//
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
+//
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -22,6 +26,7 @@ int main () {
     * Applying the inverse Key Schedule algorithm, we derive the master key.
     */
 
+    printf("\nEXAMPLE 1:");
     unsigned char key[] = {
     0x2b, 0x28, 0xab, 0x09,
     0x7e, 0xae, 0xf7, 0xcf,
@@ -29,22 +34,27 @@ int main () {
     0x16, 0xa6, 0x88, 0x3c
     };
 
+    printf("\nThe following master key is given:\n");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", key[i]);
+    }
+
     AES* aes = create_aes_instance(key);
 
-    SquareAttack(aes);
+    square_attack(aes);
 
-    printf("Fourth round key:\n");
+    printf("\nThe square attack has derived the fourth round key, it can be seen below:\n");
     for (int i = 0; i < BLOCK_SIZE; i++) {
         printf("%02x ", aes->key[i]);
     }
-    printf("\n");
     
-    KeyScheduleInverse(aes->key, 4);
+    derive_master_key(aes->key, 4);
 
+    printf("\nWe derive the master key from the fourth round key:\n");
     for (int i = 0; i < BLOCK_SIZE; i++) {
         printf("%02x ", aes->key[i]);
     }
-    printf("\nSuccess! When applying the inverse key schedule, we arrive at the initial key\n");
+    printf("\nSuccess! The correct master key has been derived.\n");
 
     delete_aes_instance(aes);
 
@@ -58,11 +68,12 @@ int main () {
     * 
     * If success in all ten cases, we return "Success!", otherwise "Failure".
     */
+    printf("\n\nEXAMPLE 2:");
     int number_of_tests = 10;
 
     unsigned char key_test[BLOCK_SIZE];
 
-    srand(time(NULL));
+    //srand(time(NULL));
     for (int i = 0; i < number_of_tests; i++) {
 
         for(int k = 0; k < BLOCK_SIZE; k++) {
@@ -71,9 +82,9 @@ int main () {
 
         AES* aes = create_aes_instance(key_test);
 
-        SquareAttack(aes);
+        square_attack(aes);
         
-        KeyScheduleInverse(aes->key, 4);
+        derive_master_key(aes->key, 4);
 
         int j = 0;
         while (j < BLOCK_SIZE + 1) {
@@ -91,6 +102,46 @@ int main () {
 
         delete_aes_instance(aes);
     }
+
+    /*
+    * Example three:
+    * 
+    * We do a full AES encryption (10 rounds). Afterwards we decrypt and show that we have derived the plaintext.
+    * 
+    */
+
+    printf("\n\nEXAMPLE 3:");
+    aes = create_aes_instance(key);
+
+    unsigned char data[] = {
+    0x32, 0x88, 0x31, 0xe0,
+    0x43, 0x5a, 0x31, 0x37,
+    0xf6, 0x30, 0x98, 0x07,
+    0xa8, 0x8d, 0xa2, 0x34
+    };
+
+    printf("\nPlaintext:\n");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", data[i]);
+    }
+
+    aes_encryption_10_rounds(aes, data);
+
+    printf("\nCiphertext:\n");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", data[i]);
+    }
+
+    memcpy(aes->key, key, BLOCK_SIZE);
+    
+    aes_decryption_10_rounds(aes, data);
+
+    printf("\nPlaintext:\n");
+    for (int i = 0; i < BLOCK_SIZE; i++) {
+        printf("%02x ", data[i]);
+    }
+
+    delete_aes_instance(aes);
 
     return 0;
 }

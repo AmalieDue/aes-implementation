@@ -1,5 +1,5 @@
 //
-// Created by bla bla
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
 //
 
 #ifndef SQUAREATTACK_AES_H
@@ -8,10 +8,10 @@
 #include "aes.h"
 #include "defines.h"
 
-unsigned char ReverseLastRound (unsigned char data_byte, unsigned char last_key_byte_guess);
+unsigned char decrypt_round_one_byte (unsigned char data_byte, unsigned char key_byte);
 
-int CheckGuess (unsigned char lambda_set[SET_SIZE][BLOCK_SIZE], int byte_position, unsigned char key_byte_guess);
+int check_key_byte_guess (unsigned char lambda_set[SET_SIZE][BLOCK_SIZE], int byte_position, unsigned char key_byte_guess);
 
-unsigned char* SquareAttack(AES* aes);
+unsigned char* square_attack(AES* aes);
 
 #endif

@@ -1,13 +1,12 @@
 //
-// Created by bla bla on 15/02/2021.
+// Created by Amalie Due Jensen s160503 and Anders Lammert Hartmann s153596
 //
 
 #ifndef AES_DEFINES_H
 #define AES_DEFINES_H
 
-/* Multiply
-* Description:
-*
+/* 
+* Multiply by 2
 */
 #define multiply(x) (((x) << 1) ^ ((((x) >> 7) & 1) * 0x1b))
 
